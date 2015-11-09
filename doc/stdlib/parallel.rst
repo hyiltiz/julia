@@ -268,7 +268,7 @@ General Parallel Computing Support
 
    .. Docstring generated from Julia source
 
-   Call a function asynchronously on the given arguments on the specified process. Returns a ``RemoteRef``\ .
+   Call a function asynchronously on the given arguments on the specified process. Returns a ``Future``\ .
 
 .. function:: wait([x])
 
@@ -276,7 +276,8 @@ General Parallel Computing Support
 
    Block the current task until some event occurs, depending on the type of the argument:
 
-   * ``RemoteRef``\ : Wait for a value to become available for the specified remote reference.
+   * ``RemoteChannel`` : Wait for a value to become available on the specified remote channel.
+   * ``Future`` : Wait for a value to become available for the specified future.
    * ``Channel``\ : Wait for a value to be appended to the channel.
    * ``Condition``\ : Wait for ``notify`` on a condition.
    * ``Process``\ : Wait for a process or process chain to exit. The ``exitcode`` field of a process can be used to determine success or failure.
@@ -293,7 +294,8 @@ General Parallel Computing Support
 
    Waits and fetches a value from ``x`` depending on the type of ``x``\ . Does not remove the item fetched:
 
-   * ``RemoteRef``\ : Wait for and get the value of a remote reference. If the remote value is an exception, throws a ``RemoteException`` which captures the remote exception and backtrace.
+   * ``Future``\ : Wait for and get the value of a Future. The fetched value is cached locally. Further calls to ``fetch`` on the same reference returns the cached value. If the remote value is an exception, throws a ``RemoteException`` which captures the remote exception and backtrace.
+   * ``RemoteChannel``\ : Wait for and get the value of a remote reference. Exceptions raised are same as for a ``Future`` .
    * ``Channel`` : Wait for and get the first available item from the channel.
 
 .. function:: remotecall_wait(func, id, args...)
@@ -308,43 +310,17 @@ General Parallel Computing Support
 
    Perform ``fetch(remotecall(...))`` in one message. Any remote exceptions are captured in a ``RemoteException`` and thrown.
 
-.. function:: put!(RemoteRef, value)
-
-   .. Docstring generated from Julia source
-
-   Store a value to a remote reference. Implements "shared queue of length 1" semantics: if a value is already present, blocks until the value is removed with ``take!``\ . Returns its first argument.
-
 .. function:: put!(Channel, value)
 
    .. Docstring generated from Julia source
 
    Appends an item to the channel. Blocks if the channel is full.
 
-.. function:: take!(RemoteRef)
-
-   .. Docstring generated from Julia source
-
-   Fetch the value of a remote reference, removing it so that the reference is empty again.
-
 .. function:: take!(Channel)
 
    .. Docstring generated from Julia source
 
    Removes and returns a value from a ``Channel``\ . Blocks till data is available.
-
-.. function:: isready(r::RemoteRef)
-
-   .. Docstring generated from Julia source
-
-   Determine whether a ``RemoteRef`` has a value stored to it. Note that this function can cause race conditions, since by the time you receive its result it may no longer be true. It is recommended that this function only be used on a ``RemoteRef`` that is assigned once.
-
-   If the argument ``RemoteRef`` is owned by a different node, this call will block to wait for the answer. It is recommended to wait for ``r`` in a separate task instead, or to use a local ``RemoteRef`` as a proxy:
-
-   .. code-block:: julia
-
-       rr = RemoteRef()
-       @async put!(rr, remotecall_fetch(long_computation, p))
-       isready(rr)  # will not block
 
 .. function:: close(Channel)
 
@@ -354,18 +330,6 @@ General Parallel Computing Support
 
    * ``put!`` on a closed channel.
    * ``take!`` and ``fetch`` on an empty, closed channel.
-
-.. function:: RemoteRef()
-
-   .. Docstring generated from Julia source
-
-   Make an uninitialized remote reference on the local machine.
-
-.. function:: RemoteRef(n)
-
-   .. Docstring generated from Julia source
-
-   Make an uninitialized remote reference on process ``n``\ .
 
 .. function:: timedwait(testcb::Function, secs::Float64; pollint::Float64=0.1)
 
@@ -377,13 +341,13 @@ General Parallel Computing Support
 
    .. Docstring generated from Julia source
 
-   Creates a closure around an expression and runs it on an automatically-chosen process, returning a ``RemoteRef`` to the result.
+   Creates a closure around an expression and runs it on an automatically-chosen process, returning a ``Future`` to the result.
 
 .. function:: @spawnat
 
    .. Docstring generated from Julia source
 
-   Accepts two arguments, ``p`` and an expression. A closure is created around the expression and run asynchronously on process ``p``\ . Returns a ``RemoteRef`` to the result.
+   Accepts two arguments, ``p`` and an expression. A closure is created around the expression and run asynchronously on process ``p``\ . Returns a ``Future`` to the result.
 
 .. function:: @fetch
 
