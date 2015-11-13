@@ -99,7 +99,7 @@ DLLEXPORT void jl_threading_profile(void);
 #  define JL_ATOMIC_FETCH_AND_ADD(a,b)                                    \
        _InterlockedExchangeAdd((volatile LONG *)&(a), (b))
 #  define JL_ATOMIC_COMPARE_AND_SWAP(a,b,c)                               \
-       _InterlockedCompareExchange64(&(a), (c), (b))
+       _InterlockedCompareExchange64((volatile LONG64 *)&(a), (c), (b))
 #  define JL_ATOMIC_TEST_AND_SET(a)                                       \
        _InterlockedExchange64(&(a), 1)
 #  define JL_ATOMIC_RELEASE(a)                                            \
@@ -584,7 +584,7 @@ typedef struct _jl_gcframe_t {
 // jl_value_t *x=NULL, *y=NULL; JL_GC_PUSH2(&x, &y);
 // x = f(); y = g(); foo(x, y)
 
-extern DLLEXPORT JL_THREAD jl_gcframe_t *jl_pgcstack;
+extern JL_THREAD jl_gcframe_t *jl_pgcstack;
 
 #define JL_GC_PUSH1(arg1)                                                 \
   void *__gc_stkf[] = {(void*)3, jl_pgcstack, arg1};                      \
@@ -1478,10 +1478,10 @@ typedef struct {
     jl_value_t * volatile *ptask_arg_in_transit;
 } jl_thread_task_state_t;
 
-extern DLLEXPORT JL_THREAD jl_task_t * volatile jl_current_task;
-extern DLLEXPORT JL_THREAD jl_task_t *jl_root_task;
-extern DLLEXPORT JL_THREAD jl_value_t *jl_exception_in_transit;
-extern DLLEXPORT JL_THREAD jl_value_t * volatile jl_task_arg_in_transit;
+extern JL_THREAD jl_task_t * volatile jl_current_task;
+extern JL_THREAD jl_task_t *jl_root_task;
+extern JL_THREAD jl_value_t *jl_exception_in_transit;
+extern JL_THREAD jl_value_t * volatile jl_task_arg_in_transit;
 
 DLLEXPORT jl_task_t *jl_new_task(jl_function_t *start, size_t ssize);
 DLLEXPORT jl_value_t *jl_switchto(jl_task_t *t, jl_value_t *arg);

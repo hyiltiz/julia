@@ -143,10 +143,10 @@ static jl_sym_t *runnable_sym;
 
 extern size_t jl_page_size;
 jl_datatype_t *jl_task_type;
-DLLEXPORT JL_THREAD jl_task_t * volatile jl_current_task;
+JL_THREAD jl_task_t * volatile jl_current_task;
 JL_THREAD jl_task_t *jl_root_task;
-DLLEXPORT JL_THREAD jl_value_t *jl_exception_in_transit;
-DLLEXPORT JL_THREAD jl_gcframe_t *jl_pgcstack = NULL;
+JL_THREAD jl_value_t *jl_exception_in_transit;
+JL_THREAD jl_gcframe_t *jl_pgcstack = NULL;
 
 static void start_task(void);
 

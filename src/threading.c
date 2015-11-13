@@ -21,6 +21,8 @@ TODO:
 #ifndef _MSC_VER
 #include <unistd.h>
 #include <sched.h>
+#else
+#define sleep(x) Sleep(1000*x)
 #endif
 
 #include "julia.h"
@@ -184,9 +186,9 @@ void jl_init_threading(void)
         jl_n_threads = jl_max_threads;
 
     // set up space for per-thread heaps
-    jl_all_heaps = malloc(jl_n_threads * sizeof(void*));
-    jl_all_pgcstacks = malloc(jl_n_threads * sizeof(void*));
-    jl_all_task_states = malloc(jl_n_threads * sizeof(jl_thread_task_state_t));
+    jl_all_heaps = (_jl_thread_heap_t**) malloc(jl_n_threads * sizeof(void*));
+    jl_all_pgcstacks = (jl_gcframe_t***) malloc(jl_n_threads * sizeof(void*));
+    jl_all_task_states = (jl_thread_task_state_t*) malloc(jl_n_threads * sizeof(jl_thread_task_state_t));
 
 #if PROFILE_JL_THREADING
     // estimate CPU speed
@@ -229,7 +231,7 @@ void jl_start_threads(void)
     }
 
     // create threads
-    targs = malloc((jl_n_threads - 1) * sizeof (ti_threadarg_t *));
+    targs = (ti_threadarg_t**) malloc((jl_n_threads - 1) * sizeof (ti_threadarg_t *));
     for (i = 0;  i < jl_n_threads - 1;  ++i) {
         targs[i] = (ti_threadarg_t *)malloc(sizeof (ti_threadarg_t));
         targs[i]->state = TI_THREAD_INIT;
